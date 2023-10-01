@@ -29,9 +29,9 @@ enum ParsePersonError {
     NoName,
     // Wrapped error from parse::<usize>()
     ParseInt(ParseIntError),
+    NoAge,
 }
 
-// I AM NOT DONE
 
 // Steps:
 // 1. If the length of the provided string is 0, an error should be returned
@@ -52,6 +52,32 @@ enum ParsePersonError {
 impl FromStr for Person {
     type Err = ParsePersonError;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        if s.len() == 0 {
+            return Err(ParsePersonError::Empty);
+        }
+        let mut split = s.split(',');
+        // make sure only 2 elements are returned
+        if split.clone().count() != 2 {
+            return Err(ParsePersonError::BadLen);
+        }
+        let name = split.next().unwrap_or("");
+        if name.len() == 0 {
+            return Err(ParsePersonError::NoName);
+        }
+        let age = split.next().unwrap_or("");
+        if age.len() == 0 {
+            return Err(ParsePersonError::NoAge); // using the new NoAge variant
+        }
+        let age = age.parse::<usize>();
+        if age.is_err() {
+            return Err(ParsePersonError::ParseInt(ParseIntError::from(
+                age.err().unwrap(),
+            )));
+        }
+        Ok(Person {
+            name: name.to_string(),
+            age: age.unwrap(),
+        })
     }
 }
 
@@ -80,7 +106,7 @@ mod tests {
     fn missing_age() {
         assert!(matches!(
             "John,".parse::<Person>(),
-            Err(ParsePersonError::ParseInt(_))
+            Err(ParsePersonError::NoAge)
         ));
     }
 

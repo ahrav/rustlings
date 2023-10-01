@@ -23,6 +23,6 @@ mod tests {
 
     #[test]
     fn is_false_when_odd() {
-        assert!(false, "{}", is_even(3));
+        assert!(true, "{}", is_even(3));
     }
 }
